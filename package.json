@@ -1,0 +1,20 @@
+{
+    "name": "cn.net.xuefei.ollamasharp-unity",
+    "version": "1.0.0",
+    "displayName": "ollamasharp-unity",
+    "description": "Using ollamasharp in Unity",
+    "author": {
+        "name": "xuefei",
+        "url": "https://www.xuefei.net.cn"
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/xue-fei/ollamasharp-unity.git"
+    },
+    "keywords": [
+        "unity",
+        "ollama",
+        "ollamasharp"
+    ],
+    "license": "MIT"
+}
