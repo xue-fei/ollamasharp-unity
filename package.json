@@ -16,5 +16,12 @@
         "ollama",
         "ollamasharp"
     ],
-    "license": "MIT"
+    "license": "MIT",
+	"samples": [
+        {
+            "displayName": "1. Sample",
+            "description": "Using OllamaSharpUnity.",
+            "path": "Samples~/1.Sample"
+        }
+    ]
 }
