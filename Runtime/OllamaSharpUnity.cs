@@ -13,18 +13,31 @@ public class OllamaSharpUnity
     Action<string> onWord;
     Action<string> onSentence;
     string modelName;
+    string sysTip;
 
-    public OllamaSharpUnity(string url, string model, Action<string> onWord = null, Action<string> onSentence = null)
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="url"></param>
+    /// <param name="model"></param>
+    /// <param name="onWord"></param>
+    /// <param name="onSentence"></param>
+    /// <param name="sysTip">系统提示 例如 你是一个有帮助的AI助手。</param>
+    public OllamaSharpUnity(string url, string model, Action<string> onWord = null, Action<string> onSentence = null, string sysTip = "")
     {
         this.onWord = onWord;
         this.onSentence = onSentence;
         this.modelName = model;
+        this.sysTip = sysTip;
+
         var uri = new Uri(url);
         ollama = new OllamaApiClient(uri);
         chatHistory = new List<Message>();
 
-        // 可选：添加系统提示
-        // chatHistory.Add(new Message(Role.System, "你是一个有帮助的AI助手。"));
+        if (!string.IsNullOrEmpty(sysTip))
+        {
+            chatHistory.Add(new Message(ChatRole.System, sysTip));
+        }
     }
 
     // 实时句子缓冲区
@@ -64,7 +77,7 @@ public class OllamaSharpUnity
                         onWord(content);
                     }
 
-                    UnityEngine.Debug.Log("模型回答:" + content);
+                    // UnityEngine.Debug.Log("模型回答:" + content);
 
                     // 追加新内容到缓冲区
                     sentenceBuffer.Append(content);
@@ -110,7 +123,7 @@ public class OllamaSharpUnity
                 {
                     onSentence(sentence);
                 }
-                UnityEngine.Debug.Log($"完整句子: {sentence}");
+                // UnityEngine.Debug.Log($"完整句子: {sentence}");
             }
 
             lastIndex = endPos;
@@ -126,9 +139,10 @@ public class OllamaSharpUnity
     public void ClearHistory()
     {
         chatHistory.Clear();
-
-        // 可选：重新添加系统提示
-        // chatHistory.Add(new Message(Role.System, "你是一个有帮助的AI助手。"));
+        if (!string.IsNullOrEmpty(sysTip))
+        {
+            chatHistory.Add(new Message(ChatRole.System, sysTip));
+        }
     }
 
     /// <summary>
