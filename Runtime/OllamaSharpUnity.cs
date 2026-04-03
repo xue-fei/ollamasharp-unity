@@ -53,6 +53,7 @@ public class OllamaSharpUnity
         chatHistory.Add(new Message(ChatRole.User, prompt));
 
         cts = new CancellationTokenSource();
+        CancellationToken token = cts.Token;
 
         // 创建聊天请求，包含整个对话历史
         var chatRequest = new ChatRequest();
@@ -61,44 +62,64 @@ public class OllamaSharpUnity
 
         try
         {
+            UnityEngine.Debug.Log("发起请求:" + prompt);
             // 使用流式聊天接口
-            var responseStream = ollama.ChatAsync(chatRequest, cts.Token);
+            var responseStream = ollama.ChatAsync(chatRequest, token);
 
             StringBuilder fullResponse = new StringBuilder();
 
             await foreach (var response in responseStream)
             {
-                if (response != null && response.Message != null)
+                token.ThrowIfCancellationRequested();
+                if (response?.Message == null)
                 {
-                    string content = response.Message.Content;
+                    continue;
+                }
 
-                    if (onWord != null)
-                    {
-                        onWord(content);
-                    }
-
-                    // UnityEngine.Debug.Log("模型回答:" + content);
-
-                    // 追加新内容到缓冲区
-                    sentenceBuffer.Append(content);
-                    fullResponse.Append(content);
-
-                    // 实时处理缓冲区
-                    ProcessBuffer(ref sentenceBuffer);
-
-                    // 如果已结束
+                string content = response.Message.Content;
+                if (string.IsNullOrEmpty(content))
+                {
                     if (response.Done)
                     {
-                        break;
+                        UnityEngine.Debug.Log("模型回答结束(空内容Done)");
                     }
+                    continue;
                 }
+                if (onWord != null)
+                {
+                    onWord(content);
+                }
+
+                UnityEngine.Debug.Log("模型回答:" + content);
+
+                // 追加新内容到缓冲区
+                sentenceBuffer.Append(content);
+                fullResponse.Append(content);
+
+                // 实时处理缓冲区
+                ProcessBuffer(ref sentenceBuffer);
+            }
+
+            string remaining = sentenceBuffer.ToString().Trim();
+            if (!string.IsNullOrEmpty(remaining))
+            {
+                UnityEngine.Debug.Log("刷新残留句子: " + remaining);
+                onSentence?.Invoke(remaining);
+                sentenceBuffer.Clear();
             }
 
             // 将完整的助理回复添加到历史中
             chatHistory.Add(new Message(ChatRole.Assistant, fullResponse.ToString()));
         }
+        catch (OperationCanceledException)
+        {
+            // 正常中断，清空残留缓冲
+            sentenceBuffer.Clear();
+            UnityEngine.Debug.Log("[Ollama] 已中断");
+        }
         catch (Exception ex)
         {
+            sentenceBuffer.Clear();
             UnityEngine.Debug.LogError($"请求出错: {ex.Message}");
         }
     }
