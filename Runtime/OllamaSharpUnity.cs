@@ -90,7 +90,7 @@ public class OllamaSharpUnity
                     onWord(content);
                 }
 
-                UnityEngine.Debug.Log("模型回答:" + content);
+                //UnityEngine.Debug.Log("模型回答:" + content);
 
                 // 追加新内容到缓冲区
                 sentenceBuffer.Append(content);
